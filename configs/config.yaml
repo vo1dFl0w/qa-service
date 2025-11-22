@@ -1,0 +1,12 @@
+env: "local"
+
+http_addr: ":8080"
+
+db:
+  host: "database"
+  port: "5432"
+  username: "admin"
+  password: "admin"
+  dbname: "qa-service-db"
+  sslmode: "disable"
+
