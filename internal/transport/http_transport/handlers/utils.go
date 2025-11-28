@@ -5,21 +5,11 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/vo1dFl0w/qa-service/internal/transport/http_transport/utils"
 )
 
 var (
 	ctxDelay = time.Second * 5
 )
-
-func validateMethod(expMethod string, gotMethod string) error {
-	if gotMethod != expMethod {
-		return utils.ErrMethodNotAllowed
-	}
-
-	return nil
-}
 
 func getIdFromURL(r *http.Request) (int, error) {
 	idStr := r.PathValue("id")

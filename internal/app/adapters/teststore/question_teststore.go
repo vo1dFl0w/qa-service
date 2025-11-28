@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/vo1dFl0w/qa-service/internal/app/domain"
+	"github.com/vo1dFl0w/qa-service/internal/app/repository"
 )
 
 type QuestionRepository struct {
@@ -12,10 +13,10 @@ type QuestionRepository struct {
 	questions map[int]*domain.Question
 }
 
-func (r *QuestionRepository) FindQuestionByID(ctx context.Context, question_id int) (*domain.Question, error) {
-	q, ok := r.questions[question_id]
+func (r *QuestionRepository) FindQuestionByID(ctx context.Context, questionID int) (*domain.Question, error) {
+	q, ok := r.questions[questionID]
 	if !ok {
-		return nil, domain.ErrNotFound
+		return nil, repository.ErrNotFound
 	}
 
 	return &domain.Question{
@@ -42,15 +43,15 @@ func (r *QuestionRepository) SaveQuestion(ctx context.Context, text string) (*do
 	return r.questions[id], nil
 }
 
-func (r *QuestionRepository) GetQuestionWithAnswers(ctx context.Context, question_id int) (*domain.Question, []*domain.Answer, error) {
-	q, ok := r.questions[question_id]
+func (r *QuestionRepository) GetQuestionWithAnswers(ctx context.Context, questionID int) (*domain.Question, []*domain.Answer, error) {
+	q, ok := r.questions[questionID]
 	if !ok {
-		return nil, nil, domain.ErrNotFound
+		return nil, nil, repository.ErrNotFound
 	}
 
 	as := make([]*domain.Answer, 0, len(r.storage.answerRepository.answers))
 	for _, a := range r.storage.answerRepository.answers {
-		if a.QuestionID == question_id {
+		if a.QuestionID == questionID {
 			as = append(as, a)
 		}
 	}
@@ -58,15 +59,15 @@ func (r *QuestionRepository) GetQuestionWithAnswers(ctx context.Context, questio
 	return q, as, nil
 }
 
-func (r *QuestionRepository) DeleteQuestion(ctx context.Context, question_id int) error {
-	_, ok := r.questions[question_id]
+func (r *QuestionRepository) DeleteQuestion(ctx context.Context, questionID int) error {
+	_, ok := r.questions[questionID]
 	if !ok {
-		return domain.ErrNoRowDeleted
+		return repository.ErrNoRowDeleted
 	}
 
-	delete(r.questions, question_id)
+	delete(r.questions, questionID)
 	for _, a := range r.storage.answerRepository.answers {
-		if a.QuestionID == question_id {
+		if a.QuestionID == questionID {
 			delete(r.storage.answerRepository.answers, a.ID)
 		}
 	}

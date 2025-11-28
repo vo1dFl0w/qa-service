@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vo1dFl0w/qa-service/internal/app/domain"
+	"github.com/vo1dFl0w/qa-service/internal/app/repository"
 )
 
 type AnswerRepository struct {
@@ -12,16 +13,16 @@ type AnswerRepository struct {
 	answers map[int]*domain.Answer
 }
 
-func (r *AnswerRepository) SaveAnswer(ctx context.Context, question_id int, user_id uuid.UUID, text string) (*domain.Answer, error) {
-	q, ok := r.storage.questionRepository.questions[question_id]
+func (r *AnswerRepository) SaveAnswer(ctx context.Context, questionID int, userID uuid.UUID, text string) (*domain.Answer, error) {
+	q, ok := r.storage.questionRepository.questions[questionID]
 	if !ok {
-		return nil, domain.ErrNotFound
+		return nil, repository.ErrNotFound
 	}
 	id := len(r.answers)+1
 	a := &domain.Answer{
 		ID:         id,
 		QuestionID: q.ID,
-		UserID:     user_id,
+		UserID:     userID,
 		Text:       text,
 	}
 
@@ -30,21 +31,21 @@ func (r *AnswerRepository) SaveAnswer(ctx context.Context, question_id int, user
 	return a, nil
 }
 
-func (r *AnswerRepository) GetAnswer(ctx context.Context, answer_id int) (*domain.Answer, error) {
-	a, ok := r.answers[answer_id]
+func (r *AnswerRepository) GetAnswer(ctx context.Context, answerID int) (*domain.Answer, error) {
+	a, ok := r.answers[answerID]
 	if !ok {
-		return nil, domain.ErrNotFound
+		return nil, repository.ErrNotFound
 	}
 
 	return a, nil
 }
 
-func (r *AnswerRepository) DeleteAnswer(ctx context.Context, answer_id int) error {
-	_, ok := r.answers[answer_id]
+func (r *AnswerRepository) DeleteAnswer(ctx context.Context, answerID int) error {
+	_, ok := r.answers[answerID]
 	if !ok {
-		return domain.ErrNoRowDeleted
+		return repository.ErrNoRowDeleted
 	}
-	delete(r.answers, answer_id)
+	delete(r.answers, answerID)
 
 	return nil
 }

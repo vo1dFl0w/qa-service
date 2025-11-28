@@ -2,10 +2,12 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/vo1dFl0w/qa-service/internal/app/domain"
+	"github.com/vo1dFl0w/qa-service/internal/app/repository"
 	"gorm.io/gorm"
 )
 
@@ -13,14 +15,14 @@ type QuestionRepository struct {
 	DB *gorm.DB
 }
 
-func (r *QuestionRepository) FindQuestionByID(ctx context.Context, question_id int) (*domain.Question, error) {
+func (r *QuestionRepository) FindQuestionByID(ctx context.Context, questionID int) (*domain.Question, error) {
 	qs := &Questions{}
 
-	if err := r.DB.WithContext(ctx).First(qs, question_id).Error; err != nil {
+	if err := r.DB.WithContext(ctx).First(qs, questionID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, domain.ErrNotFound
+			return nil, repository.ErrNotFound
 		}
-		return nil, fmt.Errorf("find_question_by_id error: %w", err)
+		return nil, fmt.Errorf("find question by id: %w", err)
 	}
 
 	return &domain.Question{
@@ -34,7 +36,10 @@ func (r *QuestionRepository) GetAllQuestions(ctx context.Context) ([]*domain.Que
 	var res []Questions
 
 	if err := r.DB.WithContext(ctx).Find(&res).Error; err != nil {
-		return nil, fmt.Errorf("get_all_questions error: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, repository.ErrNotFound
+		}
+		return nil, fmt.Errorf("get all questions: %w", err)
 	}
 
 	qs := make([]*domain.Question, 0, len(res))
@@ -65,16 +70,16 @@ func (r *QuestionRepository) SaveQuestion(ctx context.Context, text string) (*do
 	}, nil
 }
 
-func (r *QuestionRepository) GetQuestionWithAnswers(ctx context.Context, question_id int) (*domain.Question, []*domain.Answer, error) {
+func (r *QuestionRepository) GetQuestionWithAnswers(ctx context.Context, questionID int) (*domain.Question, []*domain.Answer, error) {
 	var qs Questions
 
 	if err := r.DB.WithContext(ctx).Preload("Answers", func(db *gorm.DB) *gorm.DB {
 		return db.Order("created_at DESC")
-	}).First(&qs, question_id).Error; err != nil {
+	}).First(&qs, questionID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, domain.ErrNotFound
+			return nil, nil, repository.ErrNotFound
 		}
-		return nil, nil, fmt.Errorf("get_question_and_answers error: %w", err)
+		return nil, nil, fmt.Errorf("get question and answers: %w", err)
 	}
 
 	q := &domain.Question{ID: qs.ID, Text: qs.QuestionText, CreatedAt: qs.CreatedAt}
@@ -92,14 +97,14 @@ func (r *QuestionRepository) GetQuestionWithAnswers(ctx context.Context, questio
 	return q, answers, nil
 }
 
-func (r *QuestionRepository) DeleteQuestion(ctx context.Context, question_id int) error {
-	res := r.DB.WithContext(ctx).Delete(&Questions{}, question_id)
+func (r *QuestionRepository) DeleteQuestion(ctx context.Context, questionID int) error {
+	res := r.DB.WithContext(ctx).Delete(&Questions{}, questionID)
 	if res.Error != nil {
 		return fmt.Errorf("delete_question error: %w", res.Error)
 	}
 
 	if res.RowsAffected == 0 {
-		return domain.ErrNoRowDeleted
+		return repository.ErrNoRowDeleted
 	}
 
 	return nil

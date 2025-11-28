@@ -11,8 +11,8 @@ type QuestionRepositoryMock struct {
 	mock.Mock
 }
 
-func (m *QuestionRepositoryMock) FindQuestionByID(ctx context.Context, question_id int) (*domain.Question, error) {
-	args := m.Called(ctx, question_id)
+func (m *QuestionRepositoryMock) FindQuestionByID(ctx context.Context, questionID int) (*domain.Question, error) {
+	args := m.Called(ctx, questionID)
 
 	if v := args.Get(0); v != nil {
 		return v.(*domain.Question), args.Error(1)
@@ -39,11 +39,11 @@ func (m *QuestionRepositoryMock) SaveQuestion(ctx context.Context, text string) 
 	return nil, args.Error(1)
 }
 
-func (m *QuestionRepositoryMock) GetQuestionWithAnswers(ctx context.Context, question_id int) (*domain.Question, []*domain.Answer, error) {
+func (m *QuestionRepositoryMock) GetQuestionWithAnswers(ctx context.Context, questionID int) (*domain.Question, []*domain.Answer, error) {
 	var q *domain.Question
 	var as []*domain.Answer
 
-	args := m.Called(ctx, question_id)
+	args := m.Called(ctx, questionID)
 	if v := args.Get(0); v != nil {
 		q = v.(*domain.Question)
 	}
@@ -53,7 +53,7 @@ func (m *QuestionRepositoryMock) GetQuestionWithAnswers(ctx context.Context, que
 	return q, as, args.Error(2)
 }
 
-func (m *QuestionRepositoryMock) DeleteQuestion(ctx context.Context, question_id int) error {
-	args := m.Called(ctx, question_id)
+func (m *QuestionRepositoryMock) DeleteQuestion(ctx context.Context, questionID int) error {
+	args := m.Called(ctx, questionID)
 	return args.Error(0)
 }

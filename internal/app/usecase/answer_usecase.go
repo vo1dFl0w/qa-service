@@ -10,9 +10,9 @@ import (
 )
 
 type AnswerService interface {
-	AddAnswerByID(ctx context.Context, question_id int, user_id uuid.UUID, text string) (*domain.Answer, error)
-	GetAnswerByID(ctx context.Context, answer_id int) (*domain.Answer, error)
-	DeleteAnswerByID(ctx context.Context, answer_id int) error
+	AddAnswerByID(ctx context.Context, questionID int, userID uuid.UUID, text string) (*domain.Answer, error)
+	GetAnswerByID(ctx context.Context, answerID int) (*domain.Answer, error)
+	DeleteAnswerByID(ctx context.Context, answerID int) error
 }
 
 type answerService struct {
@@ -24,15 +24,15 @@ func NewAnswerService(repoAnswer repository.AnswerRepository, repoQuestion repos
 	return &answerService{repoAnswer: repoAnswer, repoQuestion: repoQuestion}
 }
 
-func (s *answerService) AddAnswerByID(ctx context.Context, question_id int, user_id uuid.UUID, text string) (*domain.Answer, error) {
-	if err := validateID(question_id); err != nil {
+func (s *answerService) AddAnswerByID(ctx context.Context, questionID int, userID uuid.UUID, text string) (*domain.Answer, error) {
+	if err := validateID(questionID); err != nil {
 		return nil, fmt.Errorf("invalid question id: %w", err)
 	}
 
-	if user_id != uuid.Nil {
-		_, err := uuid.Parse(user_id.String())
+	if userID != uuid.Nil {
+		_, err := uuid.Parse(userID.String())
 		if err != nil {
-			return nil, fmt.Errorf("invalid user_id: %w", err)
+			return nil, fmt.Errorf("invalid user id: %w", err)
 		}
 	}
 
@@ -40,25 +40,25 @@ func (s *answerService) AddAnswerByID(ctx context.Context, question_id int, user
 		return nil, domain.ErrEmptyText
 	}
 
-	_, err := s.repoQuestion.FindQuestionByID(ctx, question_id)
+	_, err := s.repoQuestion.FindQuestionByID(ctx, questionID)
 	if err != nil {
-		return nil, fmt.Errorf("find_question_by_id error: %w", err)
+		return nil, fmt.Errorf("find question by id: %w", err)
 	}
 
-	return s.repoAnswer.SaveAnswer(ctx, question_id, user_id, text)
+	return s.repoAnswer.SaveAnswer(ctx, questionID, userID, text)
 }
 
-func (s *answerService) GetAnswerByID(ctx context.Context, answer_id int) (*domain.Answer, error) {
-	if err := validateID(answer_id); err != nil {
+func (s *answerService) GetAnswerByID(ctx context.Context, answerID int) (*domain.Answer, error) {
+	if err := validateID(answerID); err != nil {
 		return nil, fmt.Errorf("invalid answer id: %w", err)
 	}
 
-	return s.repoAnswer.GetAnswer(ctx, answer_id)
+	return s.repoAnswer.GetAnswer(ctx, answerID)
 }
-func (s *answerService) DeleteAnswerByID(ctx context.Context, answer_id int) error {
-	if err := validateID(answer_id); err != nil {
+func (s *answerService) DeleteAnswerByID(ctx context.Context, answerID int) error {
+	if err := validateID(answerID); err != nil {
 		return fmt.Errorf("invalid answer id: %w", err)
 	}
 
-	return s.repoAnswer.DeleteAnswer(ctx, answer_id)
+	return s.repoAnswer.DeleteAnswer(ctx, answerID)
 }

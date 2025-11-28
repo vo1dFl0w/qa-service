@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/vo1dFl0w/qa-service/internal/app/adapters/teststore"
-	"github.com/vo1dFl0w/qa-service/internal/app/domain"
+	"github.com/vo1dFl0w/qa-service/internal/app/repository"
 )
 
 func TestQuestionRepository_FindQuestionByID(t *testing.T) {
@@ -63,23 +63,23 @@ func TestQuestionRepository_GetQuestionWithAnswers(t *testing.T) {
 	assert.Equal(t, 1, q.ID)
 	assert.Equal(t, "question_1", q.Text)
 
-	user_id := uuid.New()
+	userID := uuid.New()
 
-	a1, err := s.Answer().SaveAnswer(context.TODO(), q.ID, user_id, "answer_1")
+	a1, err := s.Answer().SaveAnswer(context.TODO(), q.ID, userID, "answer_1")
 	assert.NoError(t, err)
 	assert.NotNil(t, a1)
 	assert.Equal(t, 1, a1.ID)
 	assert.Equal(t, q.ID, a1.QuestionID)
 	assert.Equal(t, "answer_1", a1.Text)
-	assert.Equal(t, a1.UserID, user_id)
+	assert.Equal(t, a1.UserID, userID)
 
-	a2, err := s.Answer().SaveAnswer(context.TODO(), q.ID, user_id, "answer_2")
+	a2, err := s.Answer().SaveAnswer(context.TODO(), q.ID, userID, "answer_2")
 	assert.NoError(t, err)
 	assert.NotNil(t, a2)
 	assert.Equal(t, 2, a2.ID)
 	assert.Equal(t, q.ID, a2.QuestionID)
 	assert.Equal(t, "answer_2", a2.Text)
-	assert.Equal(t, a2.UserID, user_id)
+	assert.Equal(t, a2.UserID, userID)
 
 	qRes, aRes, err := s.Question().GetQuestionWithAnswers(context.TODO(), q.ID)
 	assert.NoError(t, err)
@@ -91,7 +91,7 @@ func TestQuestionRepository_GetQuestionWithAnswers(t *testing.T) {
 
 	_, _, err = s.Question().GetQuestionWithAnswers(context.TODO(), 100)
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, domain.ErrNotFound)
+	assert.ErrorIs(t, err, repository.ErrNotFound)
 }
 
 func TestQuestionRepository_DeleteQuestion(t *testing.T) {
@@ -103,36 +103,36 @@ func TestQuestionRepository_DeleteQuestion(t *testing.T) {
 	assert.Equal(t, 1, q.ID)
 	assert.Equal(t, "question_1", q.Text)
 
-	user_id := uuid.New()
+	userID := uuid.New()
 
-	a1, err := s.Answer().SaveAnswer(context.TODO(), q.ID, user_id, "answer_1")
+	a1, err := s.Answer().SaveAnswer(context.TODO(), q.ID, userID, "answer_1")
 	assert.NoError(t, err)
 	assert.NotNil(t, a1)
 	assert.Equal(t, 1, a1.ID)
 	assert.Equal(t, q.ID, a1.QuestionID)
 	assert.Equal(t, "answer_1", a1.Text)
-	assert.Equal(t, a1.UserID, user_id)
+	assert.Equal(t, a1.UserID, userID)
 
-	a2, err := s.Answer().SaveAnswer(context.TODO(), q.ID, user_id, "answer_2")
+	a2, err := s.Answer().SaveAnswer(context.TODO(), q.ID, userID, "answer_2")
 	assert.NoError(t, err)
 	assert.NotNil(t, a2)
 	assert.Equal(t, 2, a2.ID)
 	assert.Equal(t, q.ID, a2.QuestionID)
 	assert.Equal(t, "answer_2", a2.Text)
-	assert.Equal(t, a2.UserID, user_id)
+	assert.Equal(t, a2.UserID, userID)
 
 	err = s.Question().DeleteQuestion(context.TODO(), q.ID)
 	assert.NoError(t, err)
 
 	_, err = s.Answer().GetAnswer(context.TODO(), a1.ID)
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, domain.ErrNotFound)
+	assert.ErrorIs(t, err, repository.ErrNotFound)
 
 	_, err = s.Answer().GetAnswer(context.TODO(), a2.ID)
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, domain.ErrNotFound)
+	assert.ErrorIs(t, err, repository.ErrNotFound)
 
 	err = s.Question().DeleteQuestion(context.TODO(), 100)
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, domain.ErrNoRowDeleted)
+	assert.ErrorIs(t, err, repository.ErrNoRowDeleted)
 }

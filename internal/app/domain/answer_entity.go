@@ -13,5 +13,3 @@ type Answer struct {
 	Text       string    `json:"text"`
 	CreatedAt  time.Time `json:"created_at"`
 }
-
-// Validation

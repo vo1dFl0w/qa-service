@@ -57,12 +57,12 @@ func (h *AnswerHandler) AddAnswer() http.HandlerFunc {
 
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			utils.ErrorResponse(w, r, http.StatusBadRequest, utils.ErrBadRequest)
+			utils.ErrorResponse(w, r, http.StatusBadRequest, ErrBadRequest)
 			return
 		}
 
 		if req.Text == "" {
-			utils.ErrorResponse(w, r, http.StatusBadRequest, fmt.Errorf("empty text: %s", utils.ErrBadRequest))
+			utils.ErrorResponse(w, r, http.StatusBadRequest, fmt.Errorf("empty text: %s", ErrBadRequest))
 			return
 		}
 

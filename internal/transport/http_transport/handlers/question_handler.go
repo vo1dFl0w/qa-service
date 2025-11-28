@@ -47,7 +47,7 @@ func (h *QuestionHandler) CreateQuestion() http.HandlerFunc {
 
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			utils.ErrorResponse(w, r, http.StatusBadRequest, utils.ErrBadRequest)
+			utils.ErrorResponse(w, r, http.StatusBadRequest, ErrBadRequest)
 			return
 		}
 
