@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/vo1dFl0w/qa-service/internal/app/usecase"
-	"github.com/vo1dFl0w/qa-service/internal/transport/utils"
+	"github.com/vo1dFl0w/qa-service/internal/transport/http_transport/utils"
 )
 
 type QuestionHandler struct {
@@ -25,11 +25,6 @@ func (h *QuestionHandler) GetQuestionsList() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), ctxDelay)
 		defer cancel()
-
-		if err := validateMethod(http.MethodGet, r.Method); err != nil {
-			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
-			return
-		}
 
 		res, err := h.questionUsecase.GetAllQuestions(ctx)
 		if err != nil {
@@ -49,11 +44,6 @@ func (h *QuestionHandler) CreateQuestion() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), ctxDelay)
 		defer cancel()
-
-		if err := validateMethod(http.MethodPost, r.Method); err != nil {
-			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
-			return
-		}
 
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -76,17 +66,18 @@ func (h *QuestionHandler) CreateQuestion() http.HandlerFunc {
 	}
 }
 
-func (h *QuestionHandler) GetQuestionWithAnswers(question_id int) http.HandlerFunc {
+func (h *QuestionHandler) GetQuestionWithAnswers() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), ctxDelay)
 		defer cancel()
 
-		if err := validateMethod(http.MethodGet, r.Method); err != nil {
+		questionID, err := getIdFromURL(r)
+		if err != nil {
 			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
 			return
 		}
 
-		q, a, err := h.questionUsecase.GetQuestionWithAnswers(ctx, question_id)
+		q, a, err := h.questionUsecase.GetQuestionWithAnswers(ctx, questionID)
 		if err != nil {
 			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
 			return
@@ -96,17 +87,18 @@ func (h *QuestionHandler) GetQuestionWithAnswers(question_id int) http.HandlerFu
 	}
 }
 
-func (h *QuestionHandler) DeleteQuestion(question_id int) http.HandlerFunc {
+func (h *QuestionHandler) DeleteQuestion() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), ctxDelay)
 		defer cancel()
 
-		if err := validateMethod(http.MethodDelete, r.Method); err != nil {
+		questionID, err := getIdFromURL(r)
+		if err != nil {
 			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
 			return
 		}
 
-		if err := h.questionUsecase.DeleteQuestionByID(ctx, question_id); err != nil {
+		if err := h.questionUsecase.DeleteQuestionByID(ctx, questionID); err != nil {
 			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
 			return
 		}

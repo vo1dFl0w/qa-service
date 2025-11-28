@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -45,13 +46,16 @@ func TestAnswerHandler_GetAnswer(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			answerUsecase := &mocks.AnswerUsecaseMock{}
 			handler := handlers.NewAnswerHandler(answerUsecase)
-			
+
 			answerUsecase.On("GetAnswerByID", mock.Anything, tc.answerID).Return(tc.mockResult, tc.mockErr)
 
-			req := httptest.NewRequest(http.MethodGet, "/answers", nil)
+			mux := http.NewServeMux()
+			mux.HandleFunc("GET /answers/{id}", handler.GetAnswer())
+
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/answers/%d", tc.answerID), nil)
 			w := httptest.NewRecorder()
 
-			handler.GetAnswer(tc.answerID)(w, req)
+			mux.ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -115,10 +119,13 @@ func TestAnswerHandler_AddAnswer(t *testing.T) {
 				answerUsecase.On("AddAnswerByID", mock.Anything, tc.questionID, userID, tc.text).Return(nil, tc.mockErr).Once()
 			}
 
-			req := httptest.NewRequest(http.MethodPost, "/answers", bytes.NewReader(reqBody))
+			mux := http.NewServeMux()
+			mux.HandleFunc("POST /questions/{id}/answers/", handler.AddAnswer())
+
+			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/questions/%d/answers/", tc.questionID), bytes.NewReader(reqBody))
 			w := httptest.NewRecorder()
 
-			handler.AddAnswer(tc.questionID)(w, req)
+			mux.ServeHTTP(w, req)
 
 			resp := w.Result()
 			defer resp.Body.Close()
@@ -155,10 +162,13 @@ func TestDeleteHandler_DeleteAnswer(t *testing.T) {
 
 			answerUsecase.On("DeleteAnswerByID", mock.Anything, tc.answerID).Return(tc.mockErr)
 
-			req := httptest.NewRequest(http.MethodDelete, "/answers", nil)
+			mux := http.NewServeMux()
+			mux.HandleFunc("DELETE /answers/{id}", handler.DeleteAnswer())
+
+			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/answers/%d", tc.answerID), nil)
 			w := httptest.NewRecorder()
 
-			handler.DeleteAnswer(tc.answerID)(w, req)
+			mux.ServeHTTP(w, req)
 
 			resp := w.Result()
 			defer resp.Body.Close()

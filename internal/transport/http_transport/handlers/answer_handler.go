@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vo1dFl0w/qa-service/internal/app/usecase"
-	"github.com/vo1dFl0w/qa-service/internal/transport/utils"
+	"github.com/vo1dFl0w/qa-service/internal/transport/http_transport/utils"
 )
 
 type AnswerHandler struct {
@@ -19,17 +19,18 @@ func NewAnswerHandler(answerUsecase usecase.AnswerService) *AnswerHandler {
 	return &AnswerHandler{answerUsecase: answerUsecase}
 }
 
-func (h *AnswerHandler) GetAnswer(answer_id int) http.HandlerFunc {
+func (h *AnswerHandler) GetAnswer() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), ctxDelay)
 		defer cancel()
-		
-		if err := validateMethod(http.MethodGet, r.Method); err != nil {
-			utils.ErrorResponse(w, r, http.StatusMethodNotAllowed, err)
+
+		answerID, err := getIdFromURL(r)
+		if err != nil {
+			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
 			return
 		}
 
-		res, err := h.answerUsecase.GetAnswerByID(ctx, answer_id)
+		res, err := h.answerUsecase.GetAnswerByID(ctx, answerID)
 		if err != nil {
 			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
 			return
@@ -39,7 +40,7 @@ func (h *AnswerHandler) GetAnswer(answer_id int) http.HandlerFunc {
 	}
 }
 
-func (h *AnswerHandler) AddAnswer(question_id int) http.HandlerFunc {
+func (h *AnswerHandler) AddAnswer() http.HandlerFunc {
 	type request struct {
 		UserID uuid.UUID `json:"user_id,omitempty"`
 		Text   string    `json:"text"`
@@ -48,8 +49,9 @@ func (h *AnswerHandler) AddAnswer(question_id int) http.HandlerFunc {
 		ctx, cancel := context.WithTimeout(r.Context(), ctxDelay)
 		defer cancel()
 
-		if err := validateMethod(http.MethodPost, r.Method); err != nil {
-			utils.ErrorResponse(w, r, http.StatusMethodNotAllowed, err)
+		questionID, err := getIdFromURL(r)
+		if err != nil {
+			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
 			return
 		}
 
@@ -64,7 +66,7 @@ func (h *AnswerHandler) AddAnswer(question_id int) http.HandlerFunc {
 			return
 		}
 
-		res, err := h.answerUsecase.AddAnswerByID(ctx, question_id, req.UserID, req.Text)
+		res, err := h.answerUsecase.AddAnswerByID(ctx, questionID, req.UserID, req.Text)
 		if err != nil {
 			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
 			return
@@ -74,17 +76,18 @@ func (h *AnswerHandler) AddAnswer(question_id int) http.HandlerFunc {
 	}
 }
 
-func (h *AnswerHandler) DeleteAnswer(answer_id int) http.HandlerFunc {
+func (h *AnswerHandler) DeleteAnswer() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), ctxDelay)
 		defer cancel()
 
-		if err := validateMethod(http.MethodDelete, r.Method); err != nil {
-			utils.ErrorResponse(w, r, http.StatusMethodNotAllowed, err)
+		answerID, err := getIdFromURL(r)
+		if err != nil {
+			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
 			return
 		}
 
-		if err := h.answerUsecase.DeleteAnswerByID(ctx, answer_id); err != nil {
+		if err := h.answerUsecase.DeleteAnswerByID(ctx, answerID); err != nil {
 			utils.ErrorResponse(w, r, http.StatusBadRequest, err)
 			return
 		}
@@ -92,4 +95,3 @@ func (h *AnswerHandler) DeleteAnswer(answer_id int) http.HandlerFunc {
 		utils.Response(w, r, http.StatusCreated, map[string]string{"status": "success"})
 	}
 }
-

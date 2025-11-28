@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -51,10 +52,13 @@ func TestQuestionHandler_GetQuestionsList(t *testing.T) {
 
 			questionUsecase.On("GetAllQuestions", mock.Anything).Return(tc.mockResult, tc.mockErr)
 
-			req := httptest.NewRequest(http.MethodGet, "/questions", nil)
+			mux := http.NewServeMux()
+			mux.HandleFunc("GET /questions/", h.GetQuestionsList())
+
+			req := httptest.NewRequest(http.MethodGet, "/questions/", nil)
 			w := httptest.NewRecorder()
 
-			h.GetQuestionsList()(w, req)
+			mux.ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -122,11 +126,13 @@ func TestQuestionHandler_CreateQuestion(t *testing.T) {
 				questionUsecase.On("CreateQuestion", mock.Anything, tc.payload["text"]).Return(&domain.Question{ID: 1, Text: "question_1"}, nil)
 			}
 
-			req := httptest.NewRequest(http.MethodPost, "/questions", bytes.NewReader(body))
-			req.Header.Set("Content-Type", "application/json")
+			mux := http.NewServeMux()
+			mux.HandleFunc("POST /questions/", h.CreateQuestion())
+
+			req := httptest.NewRequest(http.MethodPost, "/questions/", bytes.NewReader(body))
 			w := httptest.NewRecorder()
 
-			h.CreateQuestion()(w, req)
+			mux.ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -175,10 +181,13 @@ func TestQuestionHandler_GetQuestionWithAnswers(t *testing.T) {
 
 			questionUsecase.On("GetQuestionWithAnswers", mock.Anything, tc.questionID).Return(tc.mockQ, tc.mockAs, tc.mockErr)
 
-			req := httptest.NewRequest(http.MethodGet, "/questions/1", nil)
+			mux := http.NewServeMux()
+			mux.HandleFunc("GET /questions/{id}", h.GetQuestionWithAnswers())
+
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/questions/%d", tc.questionID), nil)
 			w := httptest.NewRecorder()
 
-			h.GetQuestionWithAnswers(tc.questionID)(w, req)
+			mux.ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -229,10 +238,13 @@ func TestQuestionHandler_DeleteQuestion(t *testing.T) {
 
 			questionUsecase.On("DeleteQuestionByID", mock.Anything, tc.questionID).Return(tc.mockErr)
 
-			req := httptest.NewRequest(http.MethodDelete, "/questions/1", nil)
+			mux := http.NewServeMux()
+			mux.HandleFunc("DELETE /questions/{id}", h.DeleteQuestion())
+
+			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/questions/%d", tc.questionID), nil)
 			w := httptest.NewRecorder()
 
-			h.DeleteQuestion(tc.questionID)(w, req)
+			mux.ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()
